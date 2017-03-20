@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Łukasz Sakowicz
+/* Copyright (C) 2017 lukascode
 *  Bezpieczeństwo sieci komputerowych
 *  PB WI SemVI Grupa: PS4 
 *  Implementacja podstawowych modułów kryptograficznych
@@ -722,7 +722,7 @@ void pause() {
 void show_menu() {
 	std::cout<<"+--------------------------------------+\n";
 	std::cout<<"|PODSTAWOWE MODOLY KRYPTOGRAFICZNE     |\n";
-	std::cout<<"|by lukascode 			               |\n";
+	std::cout<<"|by lukascode  			               |\n";
 	std::cout<<"+--------------------------------------+\n";
 	std::cout<<"| 1. Rail Fence (1)                    |\n";
 	std::cout<<"| 2. Przestawienia macierzowe (2a)     |\n";
