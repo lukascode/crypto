@@ -1,6 +1,6 @@
 
 CC = g++
-CFLAGS = -std=c++11
+CFLAGS = -std=c++11 -ggdb
 
 generator = generator.exe
 cipher1 = cipher1.exe

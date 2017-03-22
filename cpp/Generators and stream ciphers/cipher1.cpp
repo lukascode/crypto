@@ -9,7 +9,7 @@ public:
     void encrypt(uint8_t* data, size_t bytes) {
         for(int i=0; i<bytes; ++i) {
             Byte b(data[i]);
-            for(int j=7; j>0; --j) {
+            for(int j=7; j>=0; --j) {
                 int bit = rg.next();
                 b.xorbit(j, bit);
             } data[i] = b.get();

@@ -27,8 +27,7 @@ public:
         int sum = getSumPoly();
         int _xor = (sum+bitin) % 2;
         lfsr->pop_back(); 
-        // lfsr->push_front(_xor);
-        lfsr->push_front( (bit_in_to_front==false)?_xor:bitin );
+        lfsr->push_front( bit_in_to_front==false?_xor:bitin );
         return _xor;
     }
 
@@ -39,6 +38,10 @@ public:
         for(int i=0; i<seed.size(); ++i) {
             lfsr->push_back(seed[i]);
         }
+    }
+
+    std::deque<int>* getLFSR() {
+        return this->lfsr;
     }
 
     ~RandomGenerator() {
@@ -71,8 +74,7 @@ public:
     void xorbit(size_t which, int value) {
         if(value != 1) return;
         which %= 8;
-        uint8_t arg = (0x01 << which);
-        byte ^= arg;
+        byte ^= (0x01 << which);
     }
 
     int getbit(size_t which) {
@@ -86,12 +88,9 @@ public:
     int setbit(size_t which, int value) {
         which %= 8; value %= 2;
         if(value == 0) { //set to 0
-            uint8_t arg = 0xFF, arg2 = (0x01 << which);
-            arg ^= arg2;
-            byte &= arg;
+            byte &= ~(0x01 << which);
         } else { //set to 1
-            uint8_t arg = (0x01 << which);
-            byte |= arg;
+            byte |= (0x01 << which);
         }
     }
 

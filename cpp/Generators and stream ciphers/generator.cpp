@@ -1,7 +1,11 @@
 #include "utils.h"
-#include <string.h>
+// #include <string.h>
 #include <iostream>
+#include <string>
+#include <sstream>
 
+//110000
+//100001
 int main(int argc, char** argv) {
 
     std::string seed, poly; int len;
@@ -27,9 +31,15 @@ int main(int argc, char** argv) {
     }
 
     RandomGenerator rg(vseed, vpoly);
+    std::string str = "";
     for(int i=0; i<len; ++i) {
-        std::cout<<rg.next();
+        std::deque<int>* lfsr = rg.getLFSR();
+        for(int j=0; j<lfsr->size(); ++j) {
+            std::cout<<(*lfsr)[j];
+        } std::cout<<std::endl;
+        str += (char)(rg.next()+'0');
     } std::cout<<std::endl;
+    std::cout<<str<<std::endl;
 
     return 0;
 }
