@@ -1,11 +1,9 @@
 #include "utils.h"
-// #include <string.h>
 #include <iostream>
 #include <string>
 #include <sstream>
 
-//110000
-//100001
+
 int main(int argc, char** argv) {
 
     std::string seed, poly; int len;
