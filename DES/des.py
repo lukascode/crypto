@@ -150,3 +150,27 @@ PC_2 = [
 
 LEFT_SHIFTS = [1,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1]
 
+
+class DES(object):
+    def __init__(self, key):
+        #key must be 64bit byte type
+        if (type(key) is not bytes) or (len(key) != 8):
+            raise ValueError("key should be 8 bytes value")
+        self.__key = key
+        self.__generate_keys()
+
+
+    def encrypt(self, data):
+        if (type(data) is not bytes) or (len(key) != 8):
+            raise ValueError("data should be 8 bytes value")
+
+    def decrypt(self, data):
+        if (type(data) is not bytes) or (len(key) != 8):
+            raise ValueError("data should be 8 bytes value")
+
+    
+
+
+
+    def __generate_keys(self):
+        pass
