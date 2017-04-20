@@ -1,5 +1,5 @@
-
-
+from collections import deque
+import binascii
  
 IP = [
 
@@ -156,21 +156,130 @@ class DES(object):
         #key must be 64bit byte type
         if (type(key) is not bytes) or (len(key) != 8):
             raise ValueError("key should be 8 bytes value")
-        self.__key = key
-        self.__generate_keys()
+        self.__key = DES.__getBitsList(key)
 
 
     def encrypt(self, data):
-        if (type(data) is not bytes) or (len(key) != 8):
+        if type(data) is not bytes:
             raise ValueError("data should be 8 bytes value")
+        return self.__run(data, "encrypt")
 
     def decrypt(self, data):
-        if (type(data) is not bytes) or (len(key) != 8):
+        if type(data) is not bytes:
             raise ValueError("data should be 8 bytes value")
+        return self.__run(data, "decrypt")
 
+    def __run(self, data, action='encrypt'):
+        assert action in ('encrypt', 'decrypt')
+        data = DES.__getBitsList(data)
+        data = DES.__mapFromSource(data, IP) #initial permutation IP
+        keys = DES.__generate_keys(self.__key)
+        if action == 'decrypt':
+            keys = keys[::-1]
+        # run 16 round
+        for key in keys:
+            data = DES.__round(data, key)
+        data = data[32:]+data[:32]
+        data = DES.__mapFromSource(data, IP_FINAL) #final permutation
+        return DES.__getBytesFrom(data)
+
+    #one des round
+    @staticmethod
+    def __round(data, key):
+        assert len(data) == 64
+        assert len(key) == 48
+        left, right = data[:32], data[32:]
+        f_result = DES.__F(right, key)
+        return right + DES.__xor(right, f_result)
+
+
+    #left - 28bits, right - 28bits, shift - 1 or 2 (LEFT_SHIFTS)
+    @staticmethod
+    def __generate_keys(key):
+        key = DES.__mapFromSource(key, PC_1) #now this is a 56 key
+        keys = []
+        C, D = key[:28], key[28:] 
+        for shift in LEFT_SHIFTS:
+            c_items, d_items = deque(C), deque(D)
+            c_items.rotate(-shift)
+            d_items.rotate(-shift)
+            C, D = list(c_items), list(d_items)
+            keys.append(DES.__mapFromSource(C+D, PC_2))
+        return keys
+
+
+    #F function
+    @staticmethod
+    def __F(data, key):
+        assert len(data) == 32
+        data = DES.__mapFromSource(data, EXPANSION) #EXPANSION, 48bits here
+        data = DES.__xor(data, key)
+        #6bits chunks
+        chunks = [data[x:x+6] for x in range(0, len(data), 6)]
+        result = []
+        #collect 4bits sbox function output
+        for i, chunk in enumerate(chunks):
+            result += DES.__sbox(chunk, SBOXES[i])
+        return DES.__mapFromSource(result, P_PERMUTATION)
+
+    #sbox - 6bits in, 4bits out
+    @staticmethod
+    def __sbox(data, box):
+        assert len(data) == 6
+        data_str = ''.join(map(str, data))
+        row = int(data_str[0]+data_str[5], 2)
+        col = int(data_str[1:5], 2)
+        val = box[row][col]
+        return DES.__getBitsList(bytes([val]))
+
+    @staticmethod
+    def __xor(a, b):
+        assert len(a) == len(b)
+        result = [0]*len(a) 
+        for i in range(0, len(a)):
+            result[i] = a[i] ^ b[i]
+        return result
+
+    @staticmethod
+    def __getBytesFrom(list):
+        #data_str = ''.join(map(str, data))
+        chunks = [list[x:x+8] for x in range(0, len(list), 8)]
+        ints = []
+        for i in chunks:
+            b_str = ''.join(map(str, i))
+            ints.append(int(b_str, 2))
+        return bytes(ints)
+
+
+    @staticmethod
+    def __getBitsList(bytes_):
+        bitsstr = DES.__getBinaryStr(bytes_)
+        return [int(i) for i in bitsstr]
+
+    @staticmethod
+    def __getBinaryStr(bytes_):
+        assert (type(bytes_) is bytes) or (type(bytes_) is bytearray)
+        result = ''
+        for byte in bytes_:
+            result += bin(byte)[2:].rjust(8, '0')
+        return result
+
+
+    @staticmethod
+    def __mapFromSource(chunk, source):
+        result = [0]*len(source)
+        for idx, value in enumerate(source):
+            result[idx] = chunk[source[idx]-1]
+        return result
     
-
-
-
-    def __generate_keys(self):
-        pass
+    @staticmethod
+    def test():
+        b = bytes(b'\xFF\x00\x0A\xAA\xFF\x00\x0A\xAA\x01\x03\x04')
+        print("original: ", binascii.hexlify(b))
+        lst = DES.__getBitsList(b)
+        print("list: ", lst)
+        byt = DES.__getBytesFrom(lst)
+        print("byt: ", binascii.hexlify(byt))
+        lst2 = DES.__getBitsList(bytes([10, 20, 30, 40]))
+        print(lst2)
+        
