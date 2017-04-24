@@ -161,13 +161,28 @@ class DES(object):
 
     def encrypt(self, data):
         if type(data) is not bytes:
-            raise ValueError("data should be 8 bytes value")
-        return self.__run(data, "encrypt")
+            raise ValueError("data should be bytes value type")
+        if len(data) == 0:
+            return data
+        return self.__run(data)
 
     def decrypt(self, data):
         if type(data) is not bytes:
-            raise ValueError("data should be 8 bytes value")
+            raise ValueError("data should be bytes value type")
+        if len(data) == 0:
+            return data
         return self.__run(data, "decrypt")
+
+    @staticmethod
+    def __padding(data):
+        left = len(data)%8
+        if left == 0:
+            return data
+        return data + bytes([8-left]*(8-left))
+
+    @staticmethod
+    def __unpadding(data):
+        pass
 
     def __run(self, data, action='encrypt'):
         assert action in ('encrypt', 'decrypt')
@@ -190,13 +205,14 @@ class DES(object):
         assert len(key) == 48
         left, right = data[:32], data[32:]
         f_result = DES.__F(right, key)
-        return right + DES.__xor(right, f_result)
+        return right + DES.__xor(left, f_result)
 
 
     #left - 28bits, right - 28bits, shift - 1 or 2 (LEFT_SHIFTS)
     @staticmethod
     def __generate_keys(key):
-        key = DES.__mapFromSource(key, PC_1) #now this is a 56 key
+        print(len(key))
+        key = DES.__mapFromSource(key, PC_1) #now this is a 56bit key
         keys = []
         C, D = key[:28], key[28:] 
         for shift in LEFT_SHIFTS:
@@ -230,19 +246,16 @@ class DES(object):
         row = int(data_str[0]+data_str[5], 2)
         col = int(data_str[1:5], 2)
         val = box[row][col]
-        return DES.__getBitsList(bytes([val]))
+        # return 4 bits sequence
+        return [int(i) for i in bin(val)[2:].rjust(4, '0')]
 
     @staticmethod
     def __xor(a, b):
         assert len(a) == len(b)
-        result = [0]*len(a) 
-        for i in range(0, len(a)):
-            result[i] = a[i] ^ b[i]
-        return result
+        return [ a[i]^b[i] for i in range(0, len(a)) ]
 
     @staticmethod
     def __getBytesFrom(list):
-        #data_str = ''.join(map(str, data))
         chunks = [list[x:x+8] for x in range(0, len(list), 8)]
         ints = []
         for i in chunks:
@@ -274,12 +287,5 @@ class DES(object):
     
     @staticmethod
     def test():
-        b = bytes(b'\xFF\x00\x0A\xAA\xFF\x00\x0A\xAA\x01\x03\x04')
-        print("original: ", binascii.hexlify(b))
-        lst = DES.__getBitsList(b)
-        print("list: ", lst)
-        byt = DES.__getBytesFrom(lst)
-        print("byt: ", binascii.hexlify(byt))
-        lst2 = DES.__getBitsList(bytes([10, 20, 30, 40]))
-        print(lst2)
-        
+        data = bytes(b'\x11\x22\x33\x44\x55')
+        print(binascii.hexlify(DES.__padding(data)))
