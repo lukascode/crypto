@@ -154,35 +154,45 @@ LEFT_SHIFTS = [1,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1]
 class DES(object):
     def __init__(self, key):
         #key must be 64bit byte type
-        if (type(key) is not bytes) or (len(key) != 8):
+        if (type(key) is not bytes) and (type(key) is not bytearray) or (len(key) != 8):
             raise ValueError("key should be 8 bytes value")
         self.__key = DES.__getBitsList(key)
 
 
     def encrypt(self, data):
-        if type(data) is not bytes:
+        if (type(data) is not bytes) and (type(data) is not bytearray):
             raise ValueError("data should be bytes value type")
         if len(data) == 0:
             return data
-        return self.__run(data)
+        data = DES.__padding(data)
+        blocks_64 = [data[x:x+8] for x in range(0, len(data), 8)] 
+        result = bytearray()
+        for block in blocks_64:
+            result += self.__run(block)
+        return result
 
     def decrypt(self, data):
-        if type(data) is not bytes:
+        if (type(data) is not bytes) and (type(data) is not bytearray):
             raise ValueError("data should be bytes value type")
         if len(data) == 0:
             return data
-        return self.__run(data, "decrypt")
+        blocks_64 = [data[x:x+8] for x in range(0, len(data), 8)]
+        result = bytearray()
+        for block in blocks_64:
+            result += self.__run(block, "decrypt")
+        result = DES.__unpadding(result)
+        return result
 
     @staticmethod
     def __padding(data):
         left = len(data)%8
-        if left == 0:
-            return data
         return data + bytes([8-left]*(8-left))
 
     @staticmethod
     def __unpadding(data):
-        pass
+        l = len(data)
+        num = data[l-1]
+        return data[:l-num]
 
     def __run(self, data, action='encrypt'):
         assert action in ('encrypt', 'decrypt')
@@ -191,7 +201,7 @@ class DES(object):
         keys = DES.__generate_keys(self.__key)
         if action == 'decrypt':
             keys = keys[::-1]
-        # run 16 round
+        # run 16 rounds
         for key in keys:
             data = DES.__round(data, key)
         data = data[32:]+data[:32]
@@ -211,7 +221,6 @@ class DES(object):
     #left - 28bits, right - 28bits, shift - 1 or 2 (LEFT_SHIFTS)
     @staticmethod
     def __generate_keys(key):
-        print(len(key))
         key = DES.__mapFromSource(key, PC_1) #now this is a 56bit key
         keys = []
         C, D = key[:28], key[28:] 
@@ -284,8 +293,3 @@ class DES(object):
         for idx, value in enumerate(source):
             result[idx] = chunk[source[idx]-1]
         return result
-    
-    @staticmethod
-    def test():
-        data = bytes(b'\x11\x22\x33\x44\x55')
-        print(binascii.hexlify(DES.__padding(data)))
