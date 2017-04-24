@@ -1,0 +1,8 @@
+Data Encryption Algorithm
+
+Encryption examples:
+cat source.bin | python des_main.py --encrypt --key 922fb510c71f436e > encrypted.bin
+echo "This text will be encrypted" | python des_main.py --encrypt --key 922fb510c71f436e > encrypted.bin
+
+Decryption example:
+cat encrypted.bin | python des_main.py --decrypt --key 922fb510c71f436e > decrypted.bin
